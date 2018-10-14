@@ -10,14 +10,14 @@ namespace PokémonSimulator
     /// <summary>
     /// PokéAgents have a mapping from a battle situation to an enumeration of states, as well as a list of actions 
     /// </summary>
-    public interface IPokéAgent
+    public interface IPokéAgent_old
     {
         int StateMapping(Battle b);
-        List<Move> ViableMoves(Battle b);
+        List<Action> ViableActions(Battle b);
         double[] EstimateRewards();
     }
 
-    public class PolicyImmediateGratification : IExplorationPolicy
+    public class PolicyImmediateGratification_old : IExplorationPolicy
     {
         public int ChooseAction(double[] actionEstimates)
         {
