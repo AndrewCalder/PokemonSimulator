@@ -40,10 +40,10 @@ namespace PokémonSimulator
             */
 
             //Do the experiment a certain number of times
-            int numIterations = 10;
+            int numIterations = 1;
 
             //Perform a number of pokemon battles each iteration
-            int numBattles = 50000;
+            int numBattles = 10000;
 
             //Keep track of running sums for averaging later
             List<int> runningSumOfRewards = new List<int>();
