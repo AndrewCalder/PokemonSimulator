@@ -53,7 +53,7 @@ namespace PokémonAPI
         /// The assortment of moves this Pokémon has
         /// </value>
         public List<Move> Moves { get; set; }
-       
+
         /// <summary>
         /// Gets or sets how much damage this Pokémon has received. Caps at the max HP value.
         /// </summary>
@@ -63,7 +63,15 @@ namespace PokémonAPI
         public int Damage
         {
             get => _damage;
-            set => _damage = Math.Min(0, value);
+            set => _damage = Math.Min(Stats[Stat.HP], _damage + value);
+        }
+
+        /// <summary>
+        /// Heals the Pokémon fully.
+        /// </summary>
+        public void Heal()
+        {
+            _damage = 0;
         }
 
         /// <summary>

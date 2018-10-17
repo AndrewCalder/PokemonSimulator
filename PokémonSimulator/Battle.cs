@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PokémonAPI;
+using Accord.MachineLearning;
 
 namespace PokémonSimulator
 {
@@ -15,13 +16,37 @@ namespace PokémonSimulator
         public Pokémon agent;
         public Pokémon defender;
 
-        public Pokémon DoBattle(Pokémon agentPokémon, IPokéAgent agentAi, Pokémon defenderPokémon, IPokéAgent defenderAi)
+        private int agentReward = 0;
+
+        public Pokémon DoBattle(Pokémon agentPokémon, IntelligentPokéAgent agentAi, Pokémon defenderPokémon, IPokéAgent defenderAi)
         {
             //Store variables
             agent = agentPokémon;
             defender = defenderPokémon;
 
+            //Print log to console
+            agentAi.StateMapping(this);
+            Console.WriteLine("RL STATE NUMBER: " + agentAi.currentState);
+            Console.WriteLine("\tLevel " + agent.Level + " " + agent.Species.Name + " has " + agent.RemainingHealth + " health.");
+            /*
+            Console.WriteLine("\t\tAttack " + agent.Stats[Stat.Attack]);
+            Console.WriteLine("\t\tDefense " + agent.Stats[Stat.Defense]);
+            Console.WriteLine("\t\tHP " + agent.Stats[Stat.HP]);
+            Console.WriteLine("\t\tSpecial " + agent.Stats[Stat.Special]);
+            Console.WriteLine("\t\tSpeed " + agent.Stats[Stat.Speed]);
+            */
+            Console.WriteLine("\tLevel " + defender.Level + " " + defender.Species.Name + " has " + defender.RemainingHealth + " health.");
+            /*
+            Console.WriteLine("\t\tAttack " + defender.Stats[Stat.Attack]);
+            Console.WriteLine("\t\tDefense " + defender.Stats[Stat.Defense]);
+            Console.WriteLine("\t\tHP " + defender.Stats[Stat.HP]);
+            Console.WriteLine("\t\tSpecial " + defender.Stats[Stat.Special]);
+            Console.WriteLine("\t\tSpeed " + defender.Stats[Stat.Speed]);
+            */
+
             //Perform the battle until one pokemon has fainted
+            bool weFainted = false;
+            bool theyFainted = false;
             while (true)
             {
                 //Fastest pokemon goes first
@@ -30,37 +55,97 @@ namespace PokémonSimulator
                 {
                     //We are faster
                     //Agent pokemon's turn
-                    DoTurn(agent, defender, agentAi);
-                        //Did they faint?
-                        if (defender.IsFainted) { return agent; }
-                    //Opponent pokemon's turn
-                    DoTurn(defender, agent, defenderAi);
+                    agentAi.StartNewTurnEpisode();
+                    agentReward = DoTurn(agent, defender, agentAi);
+                    agentAi.ApplyRewardDealDamage(agentReward);
+
+                    //~~~~~~~~~~~~~~~TESTING: what if ice beam is much more effective?~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    //if (agentAi.lastAction == 0) { defender.Damage += 100; }
+
+                    //Did they faint?
+                    if (defender.IsFainted) { theyFainted = true; }
+                    else
+                    {
+                        //Opponent pokemon's turn
+                        agentReward = DoTurn(defender, agent, defenderAi);
+                        agentAi.ApplyRewardTakeDamage(agentReward);
+
+                        //Did we faint?
+                        if (agent.IsFainted) { weFainted = true; }
+                    }
                 }
                 else
                 {
                     //Opponent is faster
                     //Opponent pokemon's turn
-                    DoTurn(defender, agent, defenderAi);
-                        //Did we faint?
-                        if (agent.IsFainted) { return defender; }
-                    //Agent pokemon's turn
-                    DoTurn(agent, defender, agentAi);
+                    agentReward = DoTurn(defender, agent, defenderAi);
+                    agentAi.ApplyRewardTakeDamage(agentReward);
+
+                    //Did we faint?
+                    if (agent.IsFainted) { weFainted = true; }
+                    else
+                    {
+                        //Agent pokemon's turn
+                        agentAi.StartNewTurnEpisode();
+                        agentReward = DoTurn(agent, defender, agentAi);
+                        agentAi.ApplyRewardDealDamage(agentReward);
+
+                        //Did they faint?
+                        if (defender.IsFainted) { theyFainted = true; }
+                    }
                 }
 
-                //Check if either pokemon has fainted
-                //If so, the other pokemon is the winner, so return that pokemon
-                if (agent.IsFainted) { return defender; }
-                if (defender.IsFainted) { return agent; }
+                //If someone fainted, assign additional reward for winning or losing the battle
+                if (weFainted) { agentAi.ApplyRewardLose(); }
+                if (theyFainted) { agentAi.ApplyRewardWin(); }
 
-                //TESTING
-                return agent;
+                //Update the learner
+                agentAi.qlearn.UpdateState(agentAi.lastState, agentAi.lastAction,
+                    agentAi.lastReward);//, agentAi.currentState);
+                Console.WriteLine("\t\tQL: From state " + agentAi.lastState + " to state " + agentAi.currentState +
+                    " by action " + agentAi.lastAction + " for reward " + agentAi.lastReward + ".");
+
+                //If someone fainted, break the loop
+                if (weFainted || theyFainted) { break; }
             }
+
+            //The battle is over
+            //Return the winning pokemon
+            if (weFainted) { return defender; }
+            else { return agent; }
         }
 
-        private void DoTurn(Pokémon actor, Pokémon enemy, IPokéAgent ai)
+        private int DoTurn(Pokémon actor, Pokémon enemy, IPokéAgent ai)
         {
             //Perform the turn according to the given AI
-            actor.Use(ai.StateMapping(this), enemy);
+            int damageDone = actor.Use(ai.ChooseMove(this), enemy);
+
+            //Print out remaining HP of enemy
+            Console.WriteLine("\t" + enemy.Species.Name + " has " + enemy.RemainingHealth + " health remaining.");
+
+            return damageDone;
+        }
+
+        private Pokémon WinThisBattle(IntelligentPokéAgent agentAi)
+        {
+            //Apply reward
+            agentAi.ApplyRewardWin();
+
+            //Update the learner
+
+            //Return the winning pokemon
+            return agent;
+        }
+
+        private Pokémon LoseThisBattle(IntelligentPokéAgent agentAi)
+        {
+            //Apply reward
+            agentAi.ApplyRewardLose();
+
+            //Update the learner
+
+            //Return the winning pokemon
+            return defender;
         }
 
         private static int ComparePokémonSpeed(Pokémon p1, Pokémon p2)

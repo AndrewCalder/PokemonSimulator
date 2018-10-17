@@ -15,6 +15,7 @@ namespace PokémonSimulator
         int StateMapping(Battle b);
         List<Move> ViableMoves(Battle b);
         double[] EstimateRewards();
+        int ChooseMove(Battle b);
     }
 
     public class PolicyImmediateGratification : IExplorationPolicy

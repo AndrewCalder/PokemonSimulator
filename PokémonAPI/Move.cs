@@ -8,6 +8,9 @@ namespace PokémonAPI
     /// </summary>
     public partial class Move
     {
+        private Random r = new Random();
+
+
         /// <summary>
         /// Gets the name of the move.
         /// </summary>
@@ -85,11 +88,32 @@ namespace PokémonAPI
             double Y = defender.Types.Aggregate
             (
                 seed: 1.0,
+                //seed: r.NextDouble(),
                 func: (result, item) => result * AttackType.AttackMultipliers()[item],
                 resultSelector: result=>result
             );
+            
+            //TESTING
+            //Manually put in the type effectiveness chart for our limited state space
+            if (((defender.Types[0] == Type.Grass) && AttackType == Type.Ice) ||
+                defender.Types[0] == Type.Water &&
+                AttackType == Type.Electric)
+            {
+                Y = 2.0;
+            } else if ((defender.Types[0] == Type.Water && AttackType == Type.Ice) ||
+                (defender.Types[0] == Type.Grass && AttackType == Type.Electric))
+            {
+                Y = 0.5;
+            }
+            else
+            {
+                Y = 1.0;
+            }
+            Console.WriteLine("Type effectiveness of " + AttackType + " against " + defender.Species.Name + ": " + Y);
+
             //Random number between 217 and 255
             int Z = new Random().Next(217, 256);
+            //int Z = r.Next(217, 256);
 
             switch (Category)
             {
@@ -116,6 +140,20 @@ namespace PokémonAPI
             damage *= Y;
             damage *= Z;
             damage /= 255.0;
+            /*
+            double damage2 = 2 * A / 5.0 + 2;
+            damage2 *= B;
+            damage2 *= C;
+            damage2 /= D;
+            damage2 = damage2 / 50 + 2;
+            damage2 *= X;
+            //damage2 *= Y;
+            damage2 *= Z;
+            damage2 /= 255.0;
+
+            //Console.WriteLine("Damage with attack type multiplier: " + damage);
+            //Console.WriteLine("Damage without attack type multiplier: " + damage2);
+            */
 
             return (int) damage;
         }

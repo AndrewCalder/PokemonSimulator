@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Accord" Version="3.8.2-alpha" />
     <PackageReference Include="Accord.MachineLearning" Version="3.8.0" />
   </ItemGroup>
 

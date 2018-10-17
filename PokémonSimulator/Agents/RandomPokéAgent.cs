@@ -5,26 +5,14 @@ using PokémonAPI;
 
 namespace PokémonSimulator
 {
-    class RandomPokéAgent : IPokéAgent
+    public class RandomPokéAgent : IPokéAgent
     {
         private double[] rewards;
 
         public int StateMapping(Battle b)
         {
-            //Choose a move at random
-            //We assume this pokemon is the DEFENDER in the Battle
-
-            //Get the number of moves to choose from
-            int numMoves = ViableMoves(b).Count;
-
-            //Return a random int between 0 and that number, this will be the index of a random move
-            Random r = new Random();
-            int move = r.Next(numMoves);
-
-            //Print out the move
-            Console.WriteLine("" + b.defender.Species.Name + " used " + ViableMoves(b)[move].Name + "!");
-
-            return move;
+            //don't need to worry about this function for a random-choice AI
+            return 0;
         }
 
         public List<Move> ViableMoves(Battle b)
@@ -37,6 +25,25 @@ namespace PokémonSimulator
             //don't need to worry about this function for a random-choice AI
             rewards = new double[4];
             return rewards;
+        }
+
+        public int ChooseMove(Battle b)
+        {
+            //Choose a move at random
+            //We assume this pokemon is the DEFENDER in the Battle
+
+            //Get the number of moves to choose from
+            int numMoves = ViableMoves(b).Count;
+
+            //Return a random int between 0 and that number, this will be the index of a random move
+            Random r = new Random();
+            //int move = Program.rnd.Next(numMoves);
+            int move = r.Next(numMoves);
+
+            //Print out the move
+            Console.WriteLine("" + b.defender.Species.Name + " used " + ViableMoves(b)[move].Name + "!");
+
+            return move;
         }
     }
 }
