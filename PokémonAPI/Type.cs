@@ -64,7 +64,7 @@ namespace PokémonAPI
         Psychic,
 
         [Display(Name = "Ice")]
-        [AttackingMultiplier(Flying, 2, Ground, 2, Water, 0.5, Grass, 2, Ice, 0.5, Dragon, 2)]
+        [AttackingMultiplier(Fire, 0.5, Flying, 2, Ground, 2, Water, 0.5, Grass, 2, Ice, 0.5, Dragon, 2)]
         Ice,
 
         [Display(Name = "Dragon")]

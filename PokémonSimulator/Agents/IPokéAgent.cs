@@ -14,7 +14,7 @@ namespace PokémonSimulator
     {
         int StateMapping(Battle b);
         List<Move> ViableMoves(Battle b);
-        double[] EstimateRewards();
+        void EstimateRewards();
         int ChooseMove(Battle b);
     }
 

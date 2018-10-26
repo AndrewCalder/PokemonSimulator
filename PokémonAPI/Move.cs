@@ -95,13 +95,15 @@ namespace PokémonAPI
             
             //TESTING
             //Manually put in the type effectiveness chart for our limited state space
-            if (((defender.Types[0] == Type.Grass) && AttackType == Type.Ice) ||
-                defender.Types[0] == Type.Water &&
-                AttackType == Type.Electric)
+            //(note, we use 'fire' to represent only charizard, including his 'flying' type, so 'fire' typing here may look inaccurate)
+            if ((defender.Types[0] == Type.Grass && (AttackType == Type.Ice || AttackType == Type.Fire)) ||
+                (defender.Types[0] == Type.Water && (AttackType == Type.Electric || AttackType == Type.Grass)) ||
+                (defender.Types[0] == Type.Fire && (AttackType == Type.Water || AttackType == Type.Electric)))
             {
                 Y = 2.0;
-            } else if ((defender.Types[0] == Type.Water && AttackType == Type.Ice) ||
-                (defender.Types[0] == Type.Grass && AttackType == Type.Electric))
+            } else if ((defender.Types[0] == Type.Water && (AttackType == Type.Ice || AttackType == Type.Fire)) ||
+                (defender.Types[0] == Type.Grass && (AttackType == Type.Electric || AttackType == Type.Water)) ||
+                (defender.Types[0] == Type.Fire && AttackType == Type.Grass))
             {
                 Y = 0.5;
             }

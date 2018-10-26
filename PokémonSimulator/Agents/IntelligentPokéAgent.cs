@@ -8,15 +8,15 @@ namespace PokémonSimulator
 {
     public class IntelligentPokéAgent : IPokéAgent
     {
-        private readonly double[] rewards = new double[4];
-        public List<int> myBattleRewards = new List<int>();
-        public List<int> myTurnRewards = new List<int>();
-
-        public const double ALPHA = 0.5;       //initial learning rate
+        //parameters
+        public const double ALPHA = 0.1;       //initial learning rate
         public const int LAMBDA = 1;           //eligibility trace length
         public const double GAMMA = 0.9;       //decay rate
         public const double EPSILON = 0.5;     //initial exploration rate
-        public const int REWARD_DEAL_DAMAGE = 20;//1;    //reward multiplier per damage dealt to opponent
+        public double variableEpsilon = EPSILON;
+        public const double EPSILON_DECAY = 0.99;
+        public const int STATE_INITIAL_REWARD = 0;
+        public const int REWARD_DEAL_DAMAGE = 2;//1;    //reward multiplier per damage dealt to opponent
         public const int REWARD_TAKE_DAMAGE = -1;//-1;    //reward multiplier per damage taken
         public const int REWARD_WIN = 200;//500;     //reward for winning a battle
         public const int REWARD_LOSE = -1000;//-500;   //penalty (negative reward) for losing a battle
@@ -24,7 +24,15 @@ namespace PokémonSimulator
         public const int STATE_SPACE = 50625;//2562890625;   //15^8
         public const int ACTION_SPACE = 4;
 
-        public Sarsa qlearn;// = new Sarsa(STATE_SPACE, ACTION_SPACE,new EpsilonGreedyExploration(EPSILON));
+        //reward tracking
+        private readonly int[,] stateActionValue = new int[STATE_SPACE, ACTION_SPACE];
+        private readonly int[] stateValue = new int[STATE_SPACE];
+        public List<int> myBattleRewards = new List<int>();
+        public List<int> myTurnRewards = new List<int>();
+
+
+        //Comparison algorithm - a SARSA algorithm from accord.net machine learning api
+        public Sarsa comparisonAlgorithm;// = new Sarsa(STATE_SPACE, ACTION_SPACE,new EpsilonGreedyExploration(EPSILON));
 
         public int currentState = 0;
         public int lastState = 0;
@@ -72,10 +80,10 @@ namespace PokémonSimulator
                 switch (i)
                 {
                     case (0):
-                        currentNum = opponentHealthQuartile;
+                        currentNum = 0;//opponentHealthQuartile;
                         break;
                     case (1):
-                        currentNum = agentHealthQuartile;
+                        currentNum = 0;//agentHealthQuartile;
                         break;
                     case (2):
                         currentNum = opponentTypeIndex1;
@@ -99,11 +107,10 @@ namespace PokémonSimulator
                 }
 
                 //Add to the stateNum, multiplied by a certain order of magnitude
+                Console.Write("state aspect " + i + ": " + currentNum + "; ");
                 stateNum += (int) (currentNum * Math.Pow(digitMult, (double) i));
             }
-
-            lastState = currentState;
-            currentState = stateNum;
+            Console.WriteLine();
             return stateNum;
         }
 
@@ -112,12 +119,21 @@ namespace PokémonSimulator
             return b.GetAgentMoves();
         }
 
-        public double[] EstimateRewards()
+        public void EstimateRewards()
         {
-            //TODO
-            rewards[0] = 0;
-            double stopTellingMeThisArrayIsNeverUsed = rewards[0];
-            return rewards;
+            //Initialize values of states
+            for (int i = 0; i < STATE_SPACE; ++i)
+            {
+                stateValue[i] = STATE_INITIAL_REWARD;
+
+                //Also the state-action pair values
+                for (int j = 0; j < ACTION_SPACE; ++j)
+                {
+                    stateActionValue[i, j] = STATE_INITIAL_REWARD;
+                }
+            }
+
+            return;
         }
 
         public int ChooseMove(Battle b)
@@ -126,10 +142,43 @@ namespace PokémonSimulator
             //We assume this pokemon is the AGENT in the Battle
 
             //Get the state, and map it to an integer
-            StateMapping(b);
+            int currentStateTemp = StateMapping(b);
+
+            //Next we use an algorithm to decide the move to take
+            int move = 0;
+
+            //Get the move from the comparison accord.net SARSA algorithm
+            //move = comparisonAlgorithm.GetAction(currentState);
+            
+            /*
+            //Get the move from the random-choice comparison algorithm
+            //We assume this pokemon is the DEFENDER in the Battle
+            //Get the number of moves to choose from
+            int numMoves = ViableMoves(b).Count;
+            //Return a random int between 0 and that number, this will be the index of a random move
+            Random r = new Random();
+            //int move = Program.rnd.Next(numMoves);
+            move = r.Next(numMoves);
+            */
+
+            //Get the move from our defined optimal-choice algorithm
+            /*
+            if (b.defender.Species.Name == "Charizard" || b.defender.Species.Name == "Venusaur")
+            {
+                move = 0;       //ice beam
+            }
+            else    //blastoise
+            {
+                move = 1;       //thunderbolt
+            }
+            */
 
             //Get the move from the RL algorithm
-            int move = qlearn.GetAction(currentState);
+            //TD bellman:  V^pi(s) = SUM[a](pi(s, a)) * SUM[s'](P.ss' ^a * [R.ss' ^a + GAMMA * V^pi(s')])
+            move = ChooseMoveEGreedy(currentState);
+            
+            //lastState = currentState;
+            //currentState = currentStateTemp;
 
             //Print out the move
             Console.WriteLine("" + b.agent.Species.Name + " used " + ViableMoves(b)[move].Name + "!");
@@ -139,23 +188,80 @@ namespace PokémonSimulator
 
             //Return the move to apply its effects
             return move;
-            /*
-            //Choose a move at random
-            //We assume this pokemon is the DEFENDER in the Battle
+        }
 
-            //Get the number of moves to choose from
-            int numMoves = ViableMoves(b).Count;
+        public int ChooseMoveEGreedy(int state)
+        {
+            //Chance EPSILON to move randomly, else move optimally
+            
+            Console.WriteLine("eps = " + variableEpsilon);
+            //Generate random number...
+            Random r = new Random();
+            if (r.NextDouble() < variableEpsilon)
+            {
+                //Choose random move
+                return ChooseMoveRandom();
+            }
+            else
+            {
+                //Choose optimal move
+                int bestMove = 0;
+                Console.Write("Choosing from: ");
+                for (int i = 0; i < ACTION_SPACE; ++i)
+                {
+                    Console.Write("" + stateActionValue[state, i] + ", ");
+                    if (stateActionValue[state, i] > stateActionValue[state, bestMove])
+                    {
+                        bestMove = i;
+                    }
+                }
+                Console.WriteLine("for state #" + state + " - chose move #" + bestMove + ".");
+                return bestMove;
+            }
+        }
 
-            //Return a random int between 0 and that number, this will be the index of a random move
+        public int ChooseMoveRandom()
+        {
+            //Get the move from the random-choice comparison algorithm
+            //Return a random int between 0 and the total possible number of moves - 1
             Random r = new Random();
             //int move = Program.rnd.Next(numMoves);
-            int move = r.Next(numMoves);
-
-            //Print out the move
-            Console.WriteLine("" + b.agent.Species.Name + " used " + ViableMoves(b)[move].Name + "!");
-
+            int move = r.Next(ACTION_SPACE);
+            Console.WriteLine("Choosing RANDOM move " + move + ".");
             return move;
-            */
+        }
+
+        public void LearnerUpdate(Battle b)
+        {
+            //Update the learner function
+            //TD update:   V(s.t) <- V(s.t) + ALPHA*[r.(t+1) + GAMMA*V(s.(t+1)) - V(s.t)]
+            stateValue[lastState] = stateValue[lastState] + (int) Math.Round(
+                ALPHA * (lastReward + GAMMA * stateValue[currentState] - stateValue[lastState]));
+            double newStateActionValue = 0.0;
+            for (int i = 0; i < ACTION_SPACE; ++i)
+            {
+                newStateActionValue += stateActionValue[lastState, lastAction] +
+                    ALPHA * (lastReward + GAMMA * stateActionValue[currentState, i] - stateActionValue[lastState, lastAction]);
+            }
+
+            stateActionValue[lastState, lastAction] = (int) Math.Round(newStateActionValue/4.0);
+
+            //Update the current state
+            //Get the state, and map it to an integer
+            lastState = currentState;
+            currentState = StateMapping(b);
+
+            //Update the comparison SARSA algorithm
+            /*
+            comparisonAlgorithm.UpdateState(lastState, lastAction,
+                lastReward);//, agentAi.currentState);
+                */
+        }
+
+        public void ResetState(Battle b)
+        {
+            currentState = StateMapping(b);
+            lastState = currentState;
         }
 
 

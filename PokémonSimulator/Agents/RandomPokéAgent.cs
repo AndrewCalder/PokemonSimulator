@@ -7,8 +7,6 @@ namespace PokémonSimulator
 {
     public class RandomPokéAgent : IPokéAgent
     {
-        private double[] rewards;
-
         public int StateMapping(Battle b)
         {
             //don't need to worry about this function for a random-choice AI
@@ -20,11 +18,10 @@ namespace PokémonSimulator
             return b.GetDefenderMoves();
         }
 
-        public double[] EstimateRewards()
+        public void EstimateRewards()
         {
             //don't need to worry about this function for a random-choice AI
-            rewards = new double[4];
-            return rewards;
+            return;
         }
 
         public int ChooseMove(Battle b)

@@ -40,10 +40,10 @@ namespace PokémonSimulator
             */
 
             //Do the experiment a certain number of times
-            int numIterations = 1;
+            int numIterations = 50;
 
             //Perform a number of pokemon battles each iteration
-            int numBattles = 10000;
+            int numBattles = 1000;
 
             //Keep track of running sums for averaging later
             List<int> runningSumOfRewards = new List<int>();
@@ -63,11 +63,16 @@ namespace PokémonSimulator
                 //Create the AI for our battles
                 IntelligentPokéAgent agentAi = new IntelligentPokéAgent();
 
-                //TESTING
+                //Initialize learning algorithm
+                agentAi.EstimateRewards();
+
+                //These are for the comparison algorithm, a SARSA algorithm from accord.net machine learning library
+                /*
                 var epol = new EpsilonGreedyExploration(IntelligentPokéAgent.EPSILON);
                 var tpol = new TabuSearchExploration(IntelligentPokéAgent.ACTION_SPACE, epol);
                 var sarsa = new Sarsa(IntelligentPokéAgent.STATE_SPACE, IntelligentPokéAgent.ACTION_SPACE, tpol);
-                agentAi.qlearn = sarsa;
+                agentAi.comparisonAlgorithm = sarsa;
+                */
 
                 //agentAi.qlearn.LearningRate = IntelligentPokéAgent.ALPHA;
                 //agentAi.qlearn.DiscountFactor = IntelligentPokéAgent.GAMMA;
@@ -92,10 +97,15 @@ namespace PokémonSimulator
                     //Start a new episode
                     agentAi.StartNewBattleEpisode();
 
-                    //TESTING - reset stuff for this iteration
+                    //Decrease exploration rate gradually
+                    //agentAi.variableEpsilon = IntelligentPokéAgent.EPSILON - (i / (double)numBattles) * IntelligentPokéAgent.EPSILON;
+                    agentAi.variableEpsilon *= IntelligentPokéAgent.EPSILON_DECAY;
+                    /*
+                    //TESTING - reset stuff for this battle
                     epol.Epsilon = IntelligentPokéAgent.EPSILON - (i / (double)numBattles) * IntelligentPokéAgent.EPSILON;
                     //agentAi.qlearn.LearningRate = IntelligentPokéAgent.ALPHA - (i / (double)numBattles) * IntelligentPokéAgent.ALPHA;
                     tpol.ResetTabuList();
+                    */
 
                     //Get a random opponent
                     opponent = opponents[rnd.Next(opponents.Count)];
@@ -104,12 +114,12 @@ namespace PokémonSimulator
                     //~~~~~~~~~~~~~~~~~~~~~TESTING: what if pokemon had much more health?~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     //agent.Stats[Stat.HP] = 1000;
                     //opponent.Stats[Stat.HP] = 1000;
-                    //agent.Heal();
-                    //opponent.Heal();
-
+                    agent.Heal();
+                    opponent.Heal();
+                    
 
                     //Print battle text to console
-                    Console.WriteLine("~~~~~BATTLE " + (i + 1) + "~~~~~");
+                    Console.WriteLine("~~~~~ITERATION " + j + ", BATTLE " + (i+1) + "~~~~~");
                     Console.WriteLine("A wild " + opponent.Species.Name + " appears! Go, " + agent.Species.Name + "!");
 
                     //Do the battle and record the winner

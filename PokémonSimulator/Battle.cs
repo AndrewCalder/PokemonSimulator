@@ -24,8 +24,10 @@ namespace PokémonSimulator
             agent = agentPokémon;
             defender = defenderPokémon;
 
+            //Reset agent state
+            agentAi.ResetState(this);
+
             //Print log to console
-            agentAi.StateMapping(this);
             Console.WriteLine("RL STATE NUMBER: " + agentAi.currentState);
             Console.WriteLine("\tLevel " + agent.Level + " " + agent.Species.Name + " has " + agent.RemainingHealth + " health.");
             /*
@@ -73,6 +75,8 @@ namespace PokémonSimulator
                         //Did we faint?
                         if (agent.IsFainted) { weFainted = true; }
                     }
+                    Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState +
+                        " by action " + agentAi.lastAction + " for reward " + agentAi.lastReward + ".");
                 }
                 else
                 {
@@ -93,6 +97,7 @@ namespace PokémonSimulator
                         //Did they faint?
                         if (defender.IsFainted) { theyFainted = true; }
                     }
+                    Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState);
                 }
 
                 //If someone fainted, assign additional reward for winning or losing the battle
@@ -100,9 +105,8 @@ namespace PokémonSimulator
                 if (theyFainted) { agentAi.ApplyRewardWin(); }
 
                 //Update the learner
-                agentAi.qlearn.UpdateState(agentAi.lastState, agentAi.lastAction,
-                    agentAi.lastReward);//, agentAi.currentState);
-                Console.WriteLine("\t\tQL: From state " + agentAi.lastState + " to state " + agentAi.currentState +
+                agentAi.LearnerUpdate(this);
+                Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState +
                     " by action " + agentAi.lastAction + " for reward " + agentAi.lastReward + ".");
 
                 //If someone fainted, break the loop
@@ -183,7 +187,7 @@ namespace PokémonSimulator
         private int GetHealthQuadrant(Pokémon p)
         {
             //Get the ratio of pokemon's current health to total health
-            double approx = p.RemainingHealth / p.Stats[PokémonAPI.Stat.HP];
+            double approx = p.RemainingHealth / (double) p.Stats[PokémonAPI.Stat.HP];
 
             //Put the ratio on a scale of 1 to 4 (instead of 0.0 to 1.0)
             //0 = dead, so we don't have to worry about this case
