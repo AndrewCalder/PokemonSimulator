@@ -40,10 +40,10 @@ namespace PokémonSimulator
             */
 
             //Do the experiment a certain number of times
-            int numIterations = 50;
+            int numIterations = 30;
 
             //Perform a number of pokemon battles each iteration
-            int numBattles = 1000;
+            int numBattles = 20000;
 
             //Keep track of running sums for averaging later
             List<int> runningSumOfRewards = new List<int>();
@@ -77,16 +77,32 @@ namespace PokémonSimulator
                 //agentAi.qlearn.LearningRate = IntelligentPokéAgent.ALPHA;
                 //agentAi.qlearn.DiscountFactor = IntelligentPokéAgent.GAMMA;
                 RandomPokéAgent opponentAi = new RandomPokéAgent();
+                //SmartPokéAgent opponentAi = new SmartPokéAgent();
 
                 //Borrow some already-created pokemon for the battle
-                Pokémon agent = RentalPokémon.RentalPorygon;
+                List<Pokémon> agents = new List<Pokémon>();
+                Pokémon agent1 = RentalPokémon.RentalVenusaur;
+                Pokémon agent2 = RentalPokémon.RentalBlastoise;
+                Pokémon agent3 = RentalPokémon.RentalCharizard;
+                Pokémon agent4 = RentalPokémon.RentalPorygon;
+                Pokémon agent5 = RentalPokémon.RentalGengar;
+                agents.Add(agent1);
+                agents.Add(agent2);
+                agents.Add(agent3);
+                agents.Add(agent4);
+                agents.Add(agent5);
                 List<Pokémon> opponents = new List<Pokémon>();
                 Pokémon opponent1 = RentalPokémon.RentalVenusaur;
                 Pokémon opponent2 = RentalPokémon.RentalBlastoise;
                 Pokémon opponent3 = RentalPokémon.RentalCharizard;
+                Pokémon opponent4 = RentalPokémon.RentalPorygon;
+                Pokémon opponent5 = RentalPokémon.RentalGengar;
                 opponents.Add(opponent1);
                 opponents.Add(opponent2);
                 opponents.Add(opponent3);
+                opponents.Add(opponent4);
+                opponents.Add(opponent5);
+                Pokémon agent;
                 Pokémon opponent;
 
                 Battle testBattle = new Battle();
@@ -98,8 +114,8 @@ namespace PokémonSimulator
                     agentAi.StartNewBattleEpisode();
 
                     //Decrease exploration rate gradually
-                    //agentAi.variableEpsilon = IntelligentPokéAgent.EPSILON - (i / (double)numBattles) * IntelligentPokéAgent.EPSILON;
-                    agentAi.variableEpsilon *= IntelligentPokéAgent.EPSILON_DECAY;
+                    agentAi.variableEpsilon = IntelligentPokéAgent.EPSILON - (i / (double)numBattles) * IntelligentPokéAgent.EPSILON;
+                    //agentAi.variableEpsilon *= IntelligentPokéAgent.EPSILON_DECAY;
                     /*
                     //TESTING - reset stuff for this battle
                     epol.Epsilon = IntelligentPokéAgent.EPSILON - (i / (double)numBattles) * IntelligentPokéAgent.EPSILON;
@@ -107,9 +123,16 @@ namespace PokémonSimulator
                     tpol.ResetTabuList();
                     */
 
-                    //Get a random opponent
+                    //Get a random agent and opponent
+                    //agent = agents[rnd.Next(agents.Count)];
+                    agent = agent4;   //porygon is a good agent
                     opponent = opponents[rnd.Next(opponents.Count)];
-
+                    //opponent = opponent1;   //venusaur is a simple opponent
+                    while (opponent.Species.Name == agent.Species.Name)
+                    {
+                        //No doubles
+                        opponent = opponents[rnd.Next(opponents.Count)];
+                    }
 
                     //~~~~~~~~~~~~~~~~~~~~~TESTING: what if pokemon had much more health?~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     //agent.Stats[Stat.HP] = 1000;

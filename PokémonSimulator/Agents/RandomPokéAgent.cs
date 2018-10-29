@@ -27,7 +27,7 @@ namespace PokémonSimulator
         public int ChooseMove(Battle b)
         {
             //Choose a move at random
-            //We assume this pokemon is the DEFENDER in the Battle
+            //We assume this pokemon is the DEFENDER in the Battle (not the agent)
 
             //Get the number of moves to choose from
             int numMoves = ViableMoves(b).Count;

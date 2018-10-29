@@ -28,7 +28,7 @@ namespace PokémonSimulator
             agentAi.ResetState(this);
 
             //Print log to console
-            Console.WriteLine("RL STATE NUMBER: " + agentAi.currentState);
+            //Console.WriteLine("RL STATE NUMBER: " + agentAi.currentState);
             Console.WriteLine("\tLevel " + agent.Level + " " + agent.Species.Name + " has " + agent.RemainingHealth + " health.");
             /*
             Console.WriteLine("\t\tAttack " + agent.Stats[Stat.Attack]);
@@ -51,13 +51,14 @@ namespace PokémonSimulator
             bool theyFainted = false;
             while (true)
             {
+                agentAi.StartNewTurnEpisode();
+
                 //Fastest pokemon goes first
                 //TODO: what do we do if speed is the same?
                 if (ComparePokémonSpeed(agent, defender) >= 0)
                 {
                     //We are faster
                     //Agent pokemon's turn
-                    agentAi.StartNewTurnEpisode();
                     agentReward = DoTurn(agent, defender, agentAi);
                     agentAi.ApplyRewardDealDamage(agentReward);
 
@@ -75,8 +76,8 @@ namespace PokémonSimulator
                         //Did we faint?
                         if (agent.IsFainted) { weFainted = true; }
                     }
-                    Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState +
-                        " by action " + agentAi.lastAction + " for reward " + agentAi.lastReward + ".");
+                    //Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState +
+                        //" by action " + agentAi.lastAction + " for reward " + agentAi.lastReward + ".");
                 }
                 else
                 {
@@ -90,14 +91,13 @@ namespace PokémonSimulator
                     else
                     {
                         //Agent pokemon's turn
-                        agentAi.StartNewTurnEpisode();
                         agentReward = DoTurn(agent, defender, agentAi);
                         agentAi.ApplyRewardDealDamage(agentReward);
 
                         //Did they faint?
                         if (defender.IsFainted) { theyFainted = true; }
                     }
-                    Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState);
+                    //Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState);
                 }
 
                 //If someone fainted, assign additional reward for winning or losing the battle
@@ -106,8 +106,8 @@ namespace PokémonSimulator
 
                 //Update the learner
                 agentAi.LearnerUpdate(this);
-                Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState +
-                    " by action " + agentAi.lastAction + " for reward " + agentAi.lastReward + ".");
+                //Console.WriteLine("\t\tFrom state " + agentAi.lastState + " to state " + agentAi.currentState +
+                    //" by action " + agentAi.lastAction + " for reward " + agentAi.lastReward + ".");
 
                 //If someone fainted, break the loop
                 if (weFainted || theyFainted) { break; }
@@ -154,12 +154,12 @@ namespace PokémonSimulator
 
         private static int ComparePokémonSpeed(Pokémon p1, Pokémon p2)
         {
-            if (p1.Stats[PokémonAPI.Stat.Speed] > p1.Stats[PokémonAPI.Stat.Speed])
+            if (p1.Stats[PokémonAPI.Stat.Speed] > p2.Stats[PokémonAPI.Stat.Speed])
             {
                 //First 'mon is faster than second 'mon
                 return 1;
             }
-            else if (p1.Stats[PokémonAPI.Stat.Speed] < p1.Stats[PokémonAPI.Stat.Speed])
+            else if (p1.Stats[PokémonAPI.Stat.Speed] < p2.Stats[PokémonAPI.Stat.Speed])
             {
                 //First 'mon is slower than second 'mon
                 return -1;

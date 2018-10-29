@@ -96,16 +96,23 @@ namespace PokémonAPI
             //TESTING
             //Manually put in the type effectiveness chart for our limited state space
             //(note, we use 'fire' to represent only charizard, including his 'flying' type, so 'fire' typing here may look inaccurate)
+            //Same deal with gengar (ghost, poison) and bulbasaur (grass, poison)
             if ((defender.Types[0] == Type.Grass && (AttackType == Type.Ice || AttackType == Type.Fire)) ||
                 (defender.Types[0] == Type.Water && (AttackType == Type.Electric || AttackType == Type.Grass)) ||
-                (defender.Types[0] == Type.Fire && (AttackType == Type.Water || AttackType == Type.Electric)))
+                (defender.Types[0] == Type.Fire && (AttackType == Type.Water || AttackType == Type.Electric || AttackType == Type.Ground)) ||
+                (defender.Types[0] == Type.Ghost && (AttackType == Type.Ground || AttackType == Type.Psychic)))
             {
                 Y = 2.0;
             } else if ((defender.Types[0] == Type.Water && (AttackType == Type.Ice || AttackType == Type.Fire)) ||
-                (defender.Types[0] == Type.Grass && (AttackType == Type.Electric || AttackType == Type.Water)) ||
-                (defender.Types[0] == Type.Fire && AttackType == Type.Grass))
+                (defender.Types[0] == Type.Grass && (AttackType == Type.Electric || AttackType == Type.Water || AttackType == Type.Ground)) ||
+                (defender.Types[0] == Type.Fire && AttackType == Type.Grass) ||
+                (defender.Types[0] == Type.Ghost && AttackType == Type.Grass))
             {
                 Y = 0.5;
+            }
+            else if (defender.Types[0] == Type.Ghost && AttackType == Type.Normal)
+            {
+                Y = 0.0;
             }
             else
             {

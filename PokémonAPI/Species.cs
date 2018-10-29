@@ -25,6 +25,8 @@ namespace PokémonAPI
         //public static Species Squirtle { get; } = new Species("Squirtle", Type.Water, StatsGen(260, 163, 195, 167, 153));
         //public static Species Wartortle { get; } = new Species("Wartortle", Type.Water, StatsGen(282, 183, 219, 189, 175));
         public static Species Blastoise { get; } = new Species("Blastoise", HelperMethods.Listify(Type.Water), StatsGen(308, 211, 245, 215, 201));
+        public static Species Gengar { get; } = new Species("Gengar", HelperMethods.Listify(Type.Ghost, Type.Poison),
+            StatsGen(270, 175, 165, 305, 265));
         public static Species Porygon { get; } = new Species("Porygon", HelperMethods.Listify(Type.Normal), StatsGen(294, 177, 199, 209, 139) );
 
         /// <summary>

@@ -14,14 +14,14 @@ namespace PokémonSimulator
         public const double GAMMA = 0.9;       //decay rate
         public const double EPSILON = 0.5;     //initial exploration rate
         public double variableEpsilon = EPSILON;
-        public const double EPSILON_DECAY = 0.99;
+        public const double EPSILON_DECAY = 0.9;
         public const int STATE_INITIAL_REWARD = 0;
-        public const int REWARD_DEAL_DAMAGE = 2;//1;    //reward multiplier per damage dealt to opponent
-        public const int REWARD_TAKE_DAMAGE = -1;//-1;    //reward multiplier per damage taken
-        public const int REWARD_WIN = 200;//500;     //reward for winning a battle
-        public const int REWARD_LOSE = -1000;//-500;   //penalty (negative reward) for losing a battle
+        public const int REWARD_DEAL_DAMAGE = 1;//2;    //reward multiplier per damage dealt to opponent
+        public const int REWARD_TAKE_DAMAGE = 0;    //reward multiplier per damage taken
+        public const int REWARD_WIN = 100;//200;     //reward for winning a battle
+        public const int REWARD_LOSE = 0;//-1000;   //penalty (negative reward) for losing a battle
 
-        public const int STATE_SPACE = 50625;//2562890625;   //15^8
+        public const uint STATE_SPACE = 960400;       //5*5*4*4*7*7*7*7      //50625;        //15^8
         public const int ACTION_SPACE = 4;
 
         //reward tracking
@@ -59,7 +59,7 @@ namespace PokémonSimulator
 
             //We will use this information to construct a number that represents the state
             int stateNum = 0;
-            int digitMult = 15;    //should keep this the same
+            int digitMult = 7;    //15;     //should keep this the same
 
             //Get the opponent's types
             int agentHealthQuartile = b.GetAgentHealthQuadrant();
@@ -75,7 +75,7 @@ namespace PokémonSimulator
 
             //this structure will help us build the number
             int currentNum = 0;
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < 8; ++i)
             {
                 switch (i)
                 {
@@ -107,7 +107,7 @@ namespace PokémonSimulator
                 }
 
                 //Add to the stateNum, multiplied by a certain order of magnitude
-                Console.Write("state aspect " + i + ": " + currentNum + "; ");
+                //Console.Write("state aspect " + i + ": " + currentNum + "; ");
                 stateNum += (int) (currentNum * Math.Pow(digitMult, (double) i));
             }
             Console.WriteLine();
@@ -122,7 +122,7 @@ namespace PokémonSimulator
         public void EstimateRewards()
         {
             //Initialize values of states
-            for (int i = 0; i < STATE_SPACE; ++i)
+            for (uint i = 0; i < STATE_SPACE; ++i)
             {
                 stateValue[i] = STATE_INITIAL_REWARD;
 
@@ -206,16 +206,16 @@ namespace PokémonSimulator
             {
                 //Choose optimal move
                 int bestMove = 0;
-                Console.Write("Choosing from: ");
+                //Console.Write("Choosing from: ");
                 for (int i = 0; i < ACTION_SPACE; ++i)
                 {
-                    Console.Write("" + stateActionValue[state, i] + ", ");
+                    //Console.Write("" + stateActionValue[state, i] + ", ");
                     if (stateActionValue[state, i] > stateActionValue[state, bestMove])
                     {
                         bestMove = i;
                     }
                 }
-                Console.WriteLine("for state #" + state + " - chose move #" + bestMove + ".");
+                //Console.WriteLine("for state #" + state + " - chose move #" + bestMove + ".");
                 return bestMove;
             }
         }
@@ -227,7 +227,7 @@ namespace PokémonSimulator
             Random r = new Random();
             //int move = Program.rnd.Next(numMoves);
             int move = r.Next(ACTION_SPACE);
-            Console.WriteLine("Choosing RANDOM move " + move + ".");
+            //Console.WriteLine("Choosing RANDOM move " + move + ".");
             return move;
         }
 
