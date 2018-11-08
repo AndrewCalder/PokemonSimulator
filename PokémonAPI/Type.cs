@@ -11,7 +11,7 @@ namespace PokémonAPI
     /// </summary>
     public enum Type
     {
-        [Display(Name="Normal")]
+        [Display(Name = "Normal")]
         [AttackingMultiplier(Rock, 0.5, Ghost, 0)]
         Normal,
 
@@ -77,49 +77,50 @@ namespace PokémonAPI
     /// </summary>
     internal static class TypeExtensions
     {
-        private static Dictionary<Type, double> _attackMultipliers=null;
-        private static Dictionary<Type, double> _defenseMultipliers=null;
+        private static Dictionary<Type, Dictionary<Type, double>> _attackMultipliers
+        = new Dictionary<Type, Dictionary<Type, double>>();
+        private static readonly Dictionary<Type, Dictionary<Type, double>> _defenseMultipliers
+        = new Dictionary<Type, Dictionary<Type, double>>();
 
         public static ImmutableDictionary<Type, double> AttackMultipliers(this Type attackingType)
         {
-            if (_attackMultipliers == null)
+            if (!_attackMultipliers.ContainsKey(attackingType))
             {
                 var attackAttribute = attackingType.GetAttributeOfType<AttackingMultiplierAttribute>();
-                _attackMultipliers = attackAttribute.AttackMultipliers();
+                _attackMultipliers[attackingType] = attackAttribute.AttackMultipliers();
             }
 
-            return _attackMultipliers.ToImmutableDictionary();
+            return _attackMultipliers[attackingType].ToImmutableDictionary();
         }
 
-        public static ImmutableDictionary<Type, double> DefenseMultipliers(this Type defendingType)
-        {
-            if (_defenseMultipliers == null)
-            {
-                _defenseMultipliers = new Dictionary<Type, double>();
+        //public static ImmutableDictionary<Type, double> DefenseMultipliers(this Type defendingType)
+        //{
+        //    if (!_defenseMultipliers.ContainsKey(defendingType))
+        //    {
 
-                //Populate the defense multipliers with nontrivial values
-                foreach (Type attackingType in Enum.GetValues(typeof(Type)))
-                {
-                    var attackAttribute = attackingType.GetAttributeOfType<AttackingMultiplierAttribute>();
-                    Dictionary<Type, double> attackMultipliers = attackAttribute.AttackMultipliers();
-                    if (attackMultipliers[defendingType] != 1)
-                    {
-                        _defenseMultipliers.Add(attackingType, attackMultipliers[defendingType]);
-                    }
-                }
+        //        //Populate the defense multipliers with nontrivial values
+        //        foreach (Type attackingType in Enum.GetValues(typeof(Type)))
+        //        {
+        //            var attackAttribute = attackingType.GetAttributeOfType<AttackingMultiplierAttribute>();
+        //            Dictionary<Type, double> attackMultipliers = attackAttribute.AttackMultipliers();
+        //            if (attackMultipliers[defendingType] != 1)
+        //            {
+        //                _defenseMultipliers.Add(attackingType, attackMultipliers[defendingType]);
+        //            }
+        //        }
 
-                //Populate the remaining defense multipliers with trivial values
-                foreach (Type attackingType in Enum.GetValues(typeof(Type)))
-                {
-                    if (!_defenseMultipliers.ContainsKey(attackingType))
-                    {
-                        _defenseMultipliers.Add(attackingType, 1);
-                    }
-                }
-            }
+        //        //Populate the remaining defense multipliers with trivial values
+        //        foreach (Type attackingType in Enum.GetValues(typeof(Type)))
+        //        {
+        //            if (!_defenseMultipliers.ContainsKey(attackingType))
+        //            {
+        //                _defenseMultipliers.Add(attackingType, 1);
+        //            }
+        //        }
+        //    }
 
-            return _attackMultipliers.ToImmutableDictionary();
-        }
+        //    return _defenseMultipliers.ToImmutableDictionary();
+        //}
     }
 
     /// <inheritdoc />
@@ -143,7 +144,7 @@ namespace PokémonAPI
 
             foreach (Type type in Enum.GetValues(typeof(Type)))
             {
-           
+
                 if (!_attackMultipliers.ContainsKey(type))
                     _attackMultipliers.Add(type, 1);
             }

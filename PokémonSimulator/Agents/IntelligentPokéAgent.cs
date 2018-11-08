@@ -149,7 +149,7 @@ namespace PokémonSimulator
 
             //Get the move from the comparison accord.net SARSA algorithm
             //move = comparisonAlgorithm.GetAction(currentState);
-            
+
             /*
             //Get the move from the random-choice comparison algorithm
             //We assume this pokemon is the DEFENDER in the Battle
@@ -162,21 +162,83 @@ namespace PokémonSimulator
             */
 
             //Get the move from our defined optimal-choice algorithm
+            //Take a look at the opponent's types
             /*
-            if (b.defender.Species.Name == "Charizard" || b.defender.Species.Name == "Venusaur")
+            if (b.GetDefenderTypes()[0] == PokémonAPI.Type.Fire)
             {
-                move = 0;       //ice beam
+                //vs. Charizard - Electric or Water is best, then Normal
+                move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Electric);
+                if (move == -1)
+                {
+                    move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Water);
+                    if (move == -1)
+                    {
+                        //Can't find our top choices
+                        move = GetMoveWithoutType(ViableMoves(b), PokémonAPI.Type.Normal);
+                    }
+                }
             }
-            else    //blastoise
+            else if (b.GetDefenderTypes()[0] == PokémonAPI.Type.Ghost)
             {
-                move = 1;       //thunderbolt
+                //vs Gengar - Ground or Psychic is best, then anything but Normal
+                move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Ground);
+                if (move == -1)
+                {
+                    move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Psychic);
+                    if (move == -1)
+                    {
+                        //Can't find our top choices
+                        move = GetMoveWithoutType(ViableMoves(b), PokémonAPI.Type.Normal);
+                    }
+                }
+            }
+            else if (b.GetDefenderTypes()[0] == PokémonAPI.Type.Grass)
+            {
+                //vs Venusaur - Fire or Ice is best, then Normal
+                move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Fire);
+                if (move == -1)
+                {
+                    move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Ice);
+                    if (move == -1)
+                    {
+                        //Can't find our top choices
+                        move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Normal);
+                    }
+                }
+            }
+            else if (b.GetDefenderTypes()[0] == PokémonAPI.Type.Normal)
+            {
+                //vs Porygon - any move is fine
+                Random r = new Random();
+                move = r.Next(ViableMoves(b).Count);
+            }
+            else if (b.GetDefenderTypes()[0] == PokémonAPI.Type.Water)
+            {
+                //vs Blastoise - Electric or Grass is best, then Normal
+                move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Electric);
+                if (move == -1)
+                {
+                    move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Grass);
+                    if (move == -1)
+                    {
+                        //Can't find our top choices
+                        move = GetMoveWithType(ViableMoves(b), PokémonAPI.Type.Normal);
+                    }
+                }
+            }
+            if (move == -1)
+            {
+                //Something's gone wrong
+                Random r = new Random();
+                move = r.Next(2) + 2;
+                Console.WriteLine("ERROR ERROR ERROR, TRIED TO SELECT MOVE -1, WHAT, NONE OF THEM ARE GOOD ENOUGH FOR YOU???");
             }
             */
 
             //Get the move from the RL algorithm
             //TD bellman:  V^pi(s) = SUM[a](pi(s, a)) * SUM[s'](P.ss' ^a * [R.ss' ^a + GAMMA * V^pi(s')])
             move = ChooseMoveEGreedy(currentState);
-            
+
             //lastState = currentState;
             //currentState = currentStateTemp;
 
@@ -194,7 +256,7 @@ namespace PokémonSimulator
         {
             //Chance EPSILON to move randomly, else move optimally
             
-            Console.WriteLine("eps = " + variableEpsilon);
+            //Console.WriteLine("eps = " + variableEpsilon);
             //Generate random number...
             Random r = new Random();
             if (r.NextDouble() < variableEpsilon)
@@ -304,6 +366,43 @@ namespace PokémonSimulator
             //meanwhile, lastReward saves the reward from the last episode (the last turn)
             if (myTurnRewards.Count > 0) { lastReward = myTurnRewards[myTurnRewards.Count - 1]; }
             myTurnRewards.Add(0);
+        }
+
+        public int GetMoveWithType(List<PokémonAPI.Move> moves, PokémonAPI.Type type)
+        {
+            //Return the first move encountered that has a given type
+            //Iterate through the moves (4 moves assumed)
+            for (int i = 0; i < 4; ++i)
+            {
+                //Console.WriteLine("Comparing type " + moves[i].AttackType + " with " + type + "...");
+                if (moves[i].AttackType == type)
+                {
+                    //Type found
+                    //Console.WriteLine("Match!");
+                    return i;
+                }
+            }
+
+            //Type not found
+            //Console.WriteLine("No match");
+            return -1;
+        }
+
+        public int GetMoveWithoutType(List<PokémonAPI.Move> moves, PokémonAPI.Type type)
+        {
+            //Return the first move encountered that DOES NOT have a given type
+            //Iterate through the moves (4 moves assumed)
+            for (int i = 0; i < 4; ++i)
+            {
+                if (moves[i].AttackType != type)
+                {
+                    //Type found
+                    return i;
+                }
+            }
+
+            //Type not found
+            return -1;
         }
     }
 }

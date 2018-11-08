@@ -124,8 +124,8 @@ namespace PokémonSimulator
                     */
 
                     //Get a random agent and opponent
-                    //agent = agents[rnd.Next(agents.Count)];
-                    agent = agent4;   //porygon is a good agent
+                    agent = agents[rnd.Next(agents.Count)];
+                    //agent = agent4;   //porygon is a good agent
                     opponent = opponents[rnd.Next(opponents.Count)];
                     //opponent = opponent1;   //venusaur is a simple opponent
                     while (opponent.Species.Name == agent.Species.Name)
